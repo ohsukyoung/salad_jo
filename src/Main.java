@@ -5,9 +5,15 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.HashMap;
 
+import java.util.List;
+import java.util.ArrayList;
+
+import java.util.Iterator;
 
 
-// 직원 안내 메세지 ----------------------------------------------------------------
+/*
+ 직원 안내 메세지 ----------------------------------------------------------------
+*/
 class Emp {
     private String staff;
     public Emp(String staff){
@@ -20,97 +26,9 @@ class Emp {
 
 }
 
-// 키오스크 ----------------------------------------------------------------
-class Kiosk {
-    private final PdSetting pdS = new PdSetting();
-    private static BufferedReader br;
-
-    // 선택 메뉴 리스트
-    static final int e_rcmnd    = 1;   // 추천메뉴
-    static final int e_mySalad  = 2;   // 나만의 샐러드
-    static final int e_drink    = 3;   // 음료
-    static final int e_side     = 4;   // 사이드
-    static final int e_cancel = -1;  // 취소
-    
-    int userSelect;     // 유저 선택값
-
-    public void kioskStart() throws IOException{
-        menuDisp();
-        menuSelect();
-        menuRun();
-    }
-
-    public void menuDisp(){
-        System.out.println("=============================");
-        System.out.println("\t [[샐러드먹조]]");
-        System.out.println("\t 1. 추천메뉴");
-        System.out.println("\t 2. 나만의 샐러드");
-        System.out.println("\t 3. 음료");
-        System.out.println("\t 4. 사이드");
-        System.out.println("\t - 뒤로가기(c)");
-        System.out.println("=============================");
-    }
-
-    public void menuSelect() throws IOException{
-        br = new BufferedReader(new InputStreamReader(System.in));
-
-        System.out.printf(">> 선택: ");
-        userSelect = Integer.parseInt(br.readLine());
-    }
-
-    public void menuRun(){
-        //Choice cho = new Choice();
-        switch (userSelect){
-            case e_rcmnd    : menuRcmd();   break;
-            case e_mySalad  : menuMySalad();break;
-            case e_drink    : menuDrink();  break;
-            case e_side     : menuSide();   break;
-            case e_cancel   : menuCancel(); break;
-        }
-    }
-    
-    public void menuRcmd(){     // 추천메뉴
-
-    }
-    public void menuMySalad(){  // 나만의 샐러드
-        System.out.println("2. 나만의 샐러드************");
-        System.out.println(pdS.getsBaseMap());
-    }
-
-    public void menuDrink(){    // 음료
-        
-    }
-    public void menuSide(){     // 사이드
-        
-    }
-    public void menuCancel(){   // 취소
-        
-    }
-}
-
-
-
-// 선택
-class Choice{
-    public void choseBase(){
-
-    }
-    public void choseMain(){
-
-    }
-    public void choseDrink(){
-
-    }
-    public void choseSide(){
-
-    }
-    public void choseCancle(){
-
-    }
-
-}
-
-// 회원 ----------------------------------------------------------------
+/*
+ 회원 ----------------------------------------------------------------
+*/
 class Member{
     private String tel; // 전화번호
     private String pw;  // 비밃번호
@@ -130,6 +48,252 @@ class Member{
     public void setPoint(int point) { this.point = point; }
 }
 
+/*
+ 키오스크 ----------------------------------------------------------------
+*/
+class Kiosk {
+    private final PdSetting pdS = new PdSetting();
+    private static BufferedReader br;
+
+    SelectMenu sMenu = new SelectMenu();
+
+    // 2dep
+    dep2_infoBase dep2infoBa = new dep2_infoBase();
+    dep2_infoMain dep2infoMa = new dep2_infoMain();
+    dep2_infoSide dep2infoSi = new dep2_infoSide();
+    dep2_infoSource dep2infoSo = new dep2_infoSource();
+    dep2_infoCheese dep2infoCh = new dep2_infoCheese();
+//    infoCancel choCancel = new infoCancel();
+
+    // 선택 메뉴 리스트
+    static final int e_rcmnd    = 1;   // 추천메뉴
+    static final int e_mySalad  = 2;   // 나만의 샐러드
+    static final int e_drink    = 3;   // 음료
+    static final int e_side     = 4;   // 사이드
+    static final int e_cancel = -1;  // 취소
+    
+    int userSelect;     // 유저 선택값
+
+    public void kioskStart(){
+        menuDisp();
+        menuRun();
+    }
+
+    public void menuDisp(){
+        System.out.println("=============================");
+        System.out.println("\t [[샐러드먹조]]");
+        System.out.println("\t 1. 추천메뉴");
+        System.out.println("\t 2. 나만의 샐러드");
+        System.out.println("\t 3. 음료");
+        System.out.println("\t 4. 사이드");
+//        System.out.println("\t - 뒤로가기(c)");
+        System.out.println("=============================");
+        userSelect = sMenu.menuSelect(4);
+    }
+
+
+
+    public void menuRun(){
+        switch (userSelect){
+            case e_rcmnd    : menuRcmd();   break;
+            case e_mySalad  : menuMySalad();break;
+            case e_drink    : menuDrink();  break;
+            case e_side     : menuSide();   break;
+            case e_cancel   : menuCancel(); break;
+        }
+    }
+    
+    public void menuRcmd(){     // 추천메뉴
+        System.out.println("\n1. 추천메뉴 -------------------------------------- ");
+
+    }
+    public void menuMySalad(){  // 나만의 샐러드
+        System.out.println("\n2. 나만의 샐러드 -------------------------------------- ");
+
+        dep2infoBa.menuInfo();
+        dep2infoMa.menuInfo();
+        dep2infoSi.menuInfo();
+        dep2infoSo.menuInfo();
+        dep2infoCh.menuInfo();
+
+
+    }
+
+    public void menuDrink(){    // 음료
+        System.out.println("\n2. 음료 -------------------------------------- ");
+    }
+    public void menuSide(){     // 사이드
+        System.out.println("\n2. 사이드 -------------------------------------- ");
+    }
+    public void menuCancel(){   // 취소
+        
+    }
+}
+
+/*
+ 선택 ----------------------------------------------------------------
+*/
+class SelectMenu{
+    int userSelect = 0;
+    private static BufferedReader br;
+    public int menuSelect(int listSize){
+        br = new BufferedReader(new InputStreamReader(System.in));
+        try{
+            do {
+                System.out.printf(">> 선택: ");
+                userSelect = Integer.parseInt(br.readLine());
+            }while (userSelect<1 || userSelect> listSize);
+        }catch (IOException e){
+            System.out.println("e.toString: "+e.toString());
+            System.out.println("e.getMessage: "+e.getMessage());
+            System.out.println("printStackTrace................");
+            e.printStackTrace();
+        }
+        return userSelect;
+    }
+}
+
+/*
+ 안내 ----------------------------------------------------------------
+*/
+interface InfoImpl{
+    public void menuInfo();
+    public void menuPrint();
+}
+
+abstract class InfoSuper implements InfoImpl{
+    private static BufferedReader br;
+    List<Product> mList = new PdSetting().getsBaseList();
+    Iterator<Product> itList;
+
+    int userSelect = 0;
+    int kioskStock = 0;
+
+    public void infoTitle(){
+        System.out.println("\n2. 나만의 샐러드 -------------------------------------- ");
+    }
+    public void infoHeader(){
+        System.out.printf("%-4s| %-8s|\t%-8s|\t%-8s\t|\t%-8s\n", "번호", "상품명", "칼로리", "가격", "남은수량");
+    }
+
+    @Override
+    public void menuInfo(){
+//        br = new BufferedReader(new InputStreamReader(System.in));
+        infoTitle();
+        infoHeader();
+
+        SelectMenu sMenu = new SelectMenu();
+
+        itList = mList.iterator();
+        for (int i=1; i<=mList.size();i++){
+            Product itS = itList.next();
+            System.out.printf("%-4d   %-8s \t%-8s \t%-8s\t \t%-8s\n", i, itS.getP_name(), itS.getP_calorie(), itS.getP_price(), itS.getP_stock());
+        }
+        userSelect = sMenu.menuSelect(mList.size());
+        // 재고 빼기
+        kioskStock = mList.get(userSelect-1).getP_stock();
+//        mList.set(userSelect-1,);
+//        mList.setP_stock(kioskStock)
+        //mList.set(userSelect-1,mList.getP_stock())
+        System.out.println();
+    }
+
+    @Override
+    public void menuPrint(){
+
+    }
+}
+// 2dep print ----------------------------------------------------------------
+class dep2_infoBase extends InfoSuper{
+
+    @Override
+    public void infoTitle(){
+        System.out.println("\t\t\t\t[ 베이스 ■ ■ ■ ■ ]");
+    }
+
+    @Override
+    public void menuInfo(){
+        mList = new PdSetting().getsBaseList();
+        super.menuInfo();
+    }
+
+    @Override
+    public void menuPrint(){}
+}
+class dep2_infoMain extends InfoSuper {
+
+    @Override
+    public void infoTitle(){
+        System.out.println("\t\t\t\t[ ■ 메인토핑 ■ ■ ■ ]");
+    }
+
+    @Override
+    public void menuInfo(){
+        mList = new PdSetting().getsMainList();
+        super.menuInfo();
+    }
+
+    @Override
+    public void menuPrint() {
+    }
+}
+class dep2_infoSide extends InfoSuper{
+
+    @Override
+    public void infoTitle(){
+        System.out.println("\t\t\t\t[ ■ ■ 사이드토핑 ■ ■ ]");
+    }
+
+    @Override
+    public void menuInfo(){
+        mList = new PdSetting().getsSideList();
+        super.menuInfo();
+    }
+
+    @Override
+    public void menuPrint() {
+    }
+}
+class dep2_infoSource extends InfoSuper{
+    
+    @Override
+    public void infoTitle(){
+        System.out.println("\t\t\t\t[ ■ ■ ■ 소스 ■ ]");
+    }
+    
+    @Override
+    public void menuInfo(){
+        mList = new PdSetting().getsSourceList();
+        super.menuInfo();
+    }
+
+    @Override
+    public void menuPrint() {
+    }
+}
+
+class dep2_infoCheese extends InfoSuper{
+
+    @Override
+    public void infoTitle(){
+        System.out.println("\t\t\t\t[ ■ ■ ■ ■ 치즈 ]");
+    }
+
+    @Override
+    public void menuInfo(){
+        mList = new PdSetting().getsCheeseList();
+        super.menuInfo();
+    }
+
+    @Override
+    public void menuPrint() {
+    }
+}
+class infoCancel{}
+
+/*
+ 2dep 재료 ----------------------------------------------------------------
+*/
 // 재료
 /*class Material{
     static final int s_Base     = 1;    // 베이스
@@ -138,7 +302,6 @@ class Member{
     static final int s_Source   = 4;    // 소스
     static final int s_Cheese   = 5;    // 치즈
 }*/
-
 enum Material{
     S_BASE("베이스"), S_MAIN("메인토핑"), S_SIDE("사이드토핑"), S_SOURCE("소스"), S_CHEESE("치즈");
 
@@ -156,20 +319,25 @@ enum Material{
 }
 
 
-// 제품
+/*
+ 제품 ----------------------------------------------------------------
+*/
 class Product{
     private int p_material; // 분류번호
-   // private String p_name;  // 이름
+    private String p_name;  // 이름
     private int p_unit;     // 단위
     private int p_count;    // 개수
     private int p_calorie;  // 칼로리
     private int p_stock;    // 적정 재고
     private int p_price;    // 금액
 
+    // 생성자
     Product(){}
-//("이름", new Product(분류번호, 단위, 개수, 칼로리, 적정재고, 금액))
-    Product(int p_material,int p_unit,int p_count,int p_calorie,int p_stock,int p_price){
+    // 사용자 정의 생성자
+    Product(int p_material,String p_name,int p_unit,int p_count,int p_calorie,int p_stock,int p_price){
+        //("이름", new Product(분류번호, 단위, 개수, 칼로리, 적정재고, 금액))
         this.p_material = p_material;
+        this.p_name = p_name;
         this.p_unit = p_unit;
         this.p_count = p_count;
         this.p_calorie = p_calorie;
@@ -180,8 +348,8 @@ class Product{
     // getter, setter
     public int getP_material() { return p_material; }
     public void setP_material(int p_material) { this.p_material = p_material; }
-    //public String getP_name() { return p_name; }
-    //public void setP_name(String p_name) { this.p_name = p_name; }
+    public String getP_name() { return p_name; }
+    public void setP_name(String p_name) { this.p_name = p_name; }
     public int getP_unit() { return p_unit; }
     public void setP_unit(int p_unit) { this.p_unit = p_unit; }
     public int getP_count() { return p_count; }
@@ -194,17 +362,19 @@ class Product{
     public void setP_price(int p_price) { this.p_price = p_price; }
 }
 
-    //S_BASE("베이스"), S_MAIN("메인토핑"), S_SIDE("사이드토핑"), S_SOURCE("소스"), S_CHEESE("치즈");
+/*
+제품 셋팅 ----------------------------------------------------------------
+*/
 class PdSetting{
+    //S_BASE("베이스"), S_MAIN("메인토핑"), S_SIDE("사이드토핑"), S_SOURCE("소스"), S_CHEESE("치즈");
     //private Map<String,Product> pdMap = new HashMap<String,Product>();  // 제품- HashMap
-    private Map<String,Product> sBaseMap = new HashMap<String,Product>();   // 제품>베이스 HashMap
-    private Map<String,Product> sMainMap = new HashMap<String,Product>();   // 제품>메인토핑 HashMap
-    private Map<String,Product> sSideMap = new HashMap<String,Product>();   // 제품>사이드토핑 HashMap
-    private Map<String,Product> sSourceMap = new HashMap<String,Product>(); // 제품>소스 HashMap
-    private Map<String,Product> sCheeseMap = new HashMap<String,Product>(); // 제품>피즈 HashMap
-    private Map<String,Member> mbMap = new HashMap<String,Member>();        // 멤버 HashMap
+    private List<Product> sBaseList = new ArrayList<Product>();   // 제품>베이스 ArrayList
+    private List<Product> sMainList = new ArrayList<Product>();   // 제품>메인토핑 ArrayList
+    private List<Product> sSideList = new ArrayList<Product>();   // 제품>사이드토핑 ArrayList
+    private List<Product> sSourceList = new ArrayList<Product>(); // 제품>소스 ArrayList
+    private List<Product> sCheeseList = new ArrayList<Product>(); // 제품>피즈 ArrayList
+    private Map<String,Member> mbMap = new HashMap<String,Member>();        // 멤버 ArrayList
 
-    //제품 셋팅
     //testProductData
     public PdSetting(){
         setS_Base();
@@ -220,59 +390,74 @@ class PdSetting{
     3. 토마토, 올리브, 할라피뇨, 새우, 당근, 오이
     //4. 양송이 크림스프, 콘치즈 스프
     4. 오리엔탈, 발사믹, 시저, 크리미, 칠리, 마요네즈
-    5. 아메리칸치즈, 모짜렐라치즈, 리코타치즈, 부라타치즈
+    5. 아메리칸, 모짜렐라, 리코타, 부라타
      */
 //        pdMap.put("이름",new Product(분류번호, 단위, 개수, 칼로리, 적정재고, 금액));
     void setS_Base(){
-        sBaseMap.put("양상추",new Product(Material.S_BASE.ordinal(), 1, 100, 200, 300, 400));
-        sBaseMap.put("오이",new Product(Material.S_BASE.ordinal(), 1, 100, 200, 300, 400));
-        sBaseMap.put("토마토",new Product(Material.S_BASE.ordinal(), 1, 100, 200, 300, 400));
-        sBaseMap.put("양파",new Product(Material.S_BASE.ordinal(), 1, 100, 200, 300, 400));
+        sBaseList.add(new Product(Material.S_BASE.ordinal(), "양상추", 1, 100, 200, 5, 400));
+        sBaseList.add(new Product(Material.S_BASE.ordinal(), "오이", 1, 100, 200, 4, 400));
+        sBaseList.add(new Product(Material.S_BASE.ordinal(), "토마토", 1, 100, 200, 3, 400));
+        sBaseList.add(new Product(Material.S_BASE.ordinal(), "양파", 1, 100, 200, 1, 400));
 
 
     }
     void setS_Main(){
-        sMainMap.put("닭고기",new Product(Material.S_MAIN.ordinal(), 1, 100, 200, 300, 400));
-        sMainMap.put("소고기",new Product(Material.S_MAIN.ordinal(), 1, 100, 200, 300, 400));
-        sMainMap.put("연어",new Product(Material.S_MAIN.ordinal(), 1, 100, 200, 300, 400));
-        sMainMap.put("우삼겹",new Product(Material.S_MAIN.ordinal(), 1, 100, 200, 300, 400));
-        sMainMap.put("베이컨",new Product(Material.S_MAIN.ordinal(), 1, 100, 200, 300, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "닭고기", 1, 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "소고기", 1, 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "연어", 1, 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "우삼겹", 1, 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "베이컨", 1, 100, 200, 5, 400));
     }
     void setS_Side(){
-        sSideMap.put("토마토",new Product(Material.S_SIDE.ordinal(), 1, 100, 200, 300, 400));
-        sSideMap.put("올리브",new Product(Material.S_SIDE.ordinal(), 1, 100, 200, 300, 400));
-        sSideMap.put("할라피뇨",new Product(Material.S_SIDE.ordinal(), 1, 100, 200, 300, 400));
-        sSideMap.put("새우",new Product(Material.S_SIDE.ordinal(), 1, 100, 200, 300, 400));
-        sSideMap.put("당근",new Product(Material.S_SIDE.ordinal(), 1, 100, 200, 300, 400));
-        sSideMap.put("오이",new Product(Material.S_SIDE.ordinal(), 1, 100, 200, 300, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "토마토", 1, 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "올리브", 1, 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "할라피뇨", 1, 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "새우", 1, 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "당근", 1, 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "오이", 1, 100, 200, 5, 400));
     }
     void setS_Source(){
-        sSourceMap.put("오리엔탈",new Product(Material.S_SOURCE.ordinal(), 1, 100, 200, 300, 400));
-        sSourceMap.put("발사믹",new Product(Material.S_SOURCE.ordinal(), 1, 100, 200, 300, 400));
-        sSourceMap.put("시저",new Product(Material.S_SOURCE.ordinal(), 1, 100, 200, 300, 400));
-        sSourceMap.put("크리미",new Product(Material.S_SOURCE.ordinal(), 1, 100, 200, 300, 400));
-        sSourceMap.put("칠리",new Product(Material.S_SOURCE.ordinal(), 1, 100, 200, 300, 400));
-        sSourceMap.put("마요네즈",new Product(Material.S_SOURCE.ordinal(), 1, 100, 200, 300, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "오리엔탈",1, 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "발사믹",1, 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "시저",1, 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "크리미",1, 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "칠리",1, 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "마요네즈",1, 100, 200, 5, 400));
     }
     void setS_Cheese(){
-        sCheeseMap.put("아메리칸치즈",new Product(Material.S_CHEESE.ordinal(), 1, 100, 200, 300, 400));
-        sCheeseMap.put("모짜렐라치즈",new Product(Material.S_CHEESE.ordinal(), 1, 100, 200, 300, 400));
-        sCheeseMap.put("리코타치즈",new Product(Material.S_CHEESE.ordinal(), 1, 100, 200, 300, 400));
-        sCheeseMap.put("부라타치즈",new Product(Material.S_CHEESE.ordinal(), 1, 100, 200, 300, 400));
+        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "아메리칸",1, 100, 200, 5, 400));
+        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "모짜렐라",1, 100, 200, 5, 400));
+        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "리코타",1, 100, 200, 5, 400));
+        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "부라타",1, 100, 200, 5, 400));
     }
 
     //getter
-    public Map<String, Product> getsBaseMap() { return sBaseMap; }
-    public Map<String, Product> getsMainMap() { return sMainMap; }
-    public Map<String, Product> getsSideMap() { return sSideMap; }
-    public Map<String, Product> getsSourceMap() { return sSourceMap; }
-    public Map<String, Product> getsCheeseMap() { return sCheeseMap; }
+    public List<Product> getsBaseList() { return sBaseList; }
+    public List<Product> getsMainList() { return sMainList; }
+    public List<Product> getsSideList() { return sSideList; }
+    public List<Product> getsSourceList() { return sSourceList; }
+    public List<Product> getsCheeseList() { return sCheeseList; }
     public Map<String, Member> getMbMap() { return mbMap; }
+
+    // setter
+    public void setsBaseList(List<Product> sBaseList) { this.sBaseList = sBaseList; }
+
+    public void setsMainList(List<Product> sMainList) { this.sMainList = sMainList; }
+
+    public void setsSideList(List<Product> sSideList) { this.sSideList = sSideList; }
+
+    public void setsSourceList(List<Product> sSourceList) { this.sSourceList = sSourceList; }
+
+    public void setsCheeseList(List<Product> sCheeseList) { this.sCheeseList = sCheeseList; }
+
+    public void setMbMap(Map<String, Member> mbMap) { this.mbMap = mbMap; }
 }
 
 
 
-// 메인 ----------------------------------------------------------------
+/*
+ 메인 ----------------------------------------------------------------
+*/
 public class Main{
     public static Emp emp = new Emp("😊");
 
@@ -280,9 +465,6 @@ public class Main{
         // 직원 인사
         //emp.empWelcome();
 
-        // test 배열 출력
-        //Map<String, Product> testBase = new PdSetting().getsBaseMap();
-        //System.out.println(testBase);
         Kiosk ks = new Kiosk();
         ks.kioskStart();
 

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-
 // 직원 안내 메세지 ----------------------------------------------------------------
 class Emp {
     private String staff;
@@ -20,21 +19,44 @@ class Emp {
 }
 
 // 열거체 메뉴리스트
-//enum MenuList{
-//    M_RCMD("추천메뉴"), M_MYSALAD("나만의 샐러드"), M_DRINK("음료"), M_CANCEL("취소");
-//
-//    private String menuList;
-//
-//    // 생성자(싱글톤)
-//    private MenuList(String menuList){
-//        this.menuList = menuList;
-//    }
-//
-//    // getter
-//    public String getMenuList(){
-//        return menuList;
-//    }
-//}
+enum MenuList3{
+    M_RCMD("추천메뉴"),
+    M_MYSALAD("나만의 샐러드"),
+    M_DRINK("음료"),
+    M_CANCEL("취소");
+
+    private String menuList;
+
+    // 생성자(싱글톤)
+    private MenuList3(String menuList){
+        this.menuList = menuList;
+    }
+
+    // getter
+    public String getMenuList3(){
+        return menuList;
+    }
+}
+
+enum MenuList2 {
+    M_RCMD("추천메뉴"),
+    MENU_LIST_2("나만의 샐러드"),
+    FALL("가을"),
+    WINTER("겨울");
+
+    // 문자열을 저장할 필드
+    private String menuList;
+
+    // 생성자 (싱글톤)
+    private MenuList2(String menuList) {
+        this.menuList = menuList;
+    }
+
+    // Getter
+    public String getMenuList() {
+        return menuList;
+    }
+}
 
 // 키오스크 ----------------------------------------------------------------
 class Kiosk {
@@ -74,10 +96,19 @@ class Kiosk {
     }
 
     public void menuRun(){
-        System.out.println(MenuList.M_RCMD.ordinal());
-        MenuList ml = new MenuList();
-        switch (userSelect){
-            case MenuList.M_RCMD.ordinal()  : ;  break;
+        System.out.println("aaa");
+
+        MenuList3 ss = MenuList3.M_DRINK;
+        System.out.println(ss.getMenuList3());
+        System.out.println(ss.ordinal());
+
+
+        MenuList3 ml = MenuList3.M_DRINK;
+//        System.out.println(MenuList.M_RCMD.ordinal());
+        switch (ml){
+//            case MenuList3.M_MYSALAD.ordinal(): ;  break;
+            case M_DRINK:
+                System.out.println("드디어..!");  break;
 //            case e_mySalad  : ;  break;
 //            case e_drink    : ; break;
 //            case e_side     : ;  break;
@@ -271,12 +302,18 @@ class PdSetting{
 
 
 // 메인 ----------------------------------------------------------------
-public class Main{
+    public class Main2{
     public static Emp emp = new Emp("😊");
 
     public static void main(String[] args) throws IOException{
         //emp.empWelcome();
 
+
+        MenuList2 s = MenuList2.MENU_LIST_2;
+        //System.out.println(s.name()); // 열거 객체명 출력 : SUMMER
+        System.out.println(s.getMenuList()); // 매핑된 열거 데이터 출력 : 봄
+
+        System.out.println(Material.S_BASE.ordinal());
 
 //        Map<String, Product> testBase = new PdSetting().getsBaseMap();
 //        System.out.println(testBase);
