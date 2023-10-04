@@ -194,7 +194,8 @@ abstract class InfoSuper implements InfoImpl{
         kioskStock = mList.get(userSelect-1).getP_stock();
 //        mList.set(userSelect-1,);
 //        mList.setP_stock(kioskStock)
-        //mList.set(userSelect-1,mList.getP_stock())
+//        mList.set(0,Product.setP_stock(2));
+//        mList.set(userSelect - 1, )
         System.out.println();
     }
 
