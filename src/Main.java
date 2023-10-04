@@ -131,18 +131,23 @@ class Kiosk {
 }
 
 /*
- 선택 ----------------------------------------------------------------
+ 메뉴 선택 ----------------------------------------------------------------
 */
-class SelectMenu{
+abstract class Super_Select{
     int userSelect = 0;
-    private static BufferedReader br;
+    protected String selmessage01 = ">> 메뉴 선택: ";
+    protected String selmessage02 = "수량이 남은 수량에서 벗어났습니다.";
+    int minNum = 1;
+    static BufferedReader br;
     public int menuSelect(int listSize){
         br = new BufferedReader(new InputStreamReader(System.in));
         try{
             do {
-                System.out.printf(">> 선택: ");
+                System.out.printf(selmessage01);
                 userSelect = Integer.parseInt(br.readLine());
-            }while (userSelect<1 || userSelect> listSize);
+                if(userSelect<minNum || userSelect> listSize)
+                    System.out.println(selmessage02);
+            }while (userSelect<minNum || userSelect> listSize);
         }catch (IOException e){
             System.out.println("e.toString: "+e.toString());
             System.out.println("e.getMessage: "+e.getMessage());
@@ -153,27 +158,51 @@ class SelectMenu{
     }
 }
 
+// 메뉴 선택
+class SelectMenu extends Super_Select{
+    @Override
+    public int menuSelect(int listSize){
+        selmessage01 = ">> 메뉴 선택: ";
+        selmessage02 = "메뉴 리스트 번호에서 벗어났습니다. 다시 입력해주세요.";
+        super.menuSelect(listSize);
+        return userSelect;
+    }
+}
+
+// 개수 선택
+class SelectCount extends Super_Select{
+    @Override
+    public int menuSelect(int listSize){
+        minNum = 0;
+        selmessage01 = ">> 수량 선택: ";
+        selmessage02 = "수량이 남은 수량에서 벗어났습니다. 다시 입력해주세요.";
+        super.menuSelect(listSize);
+        return userSelect;
+    }
+}
+
 /*
  안내 ----------------------------------------------------------------
 */
-interface InfoImpl{
-    public void menuInfo();
-    public void menuPrint();
+interface Impl_Info {
+    public void menuInfo();     // 메뉴선택
+    public void menuCount();    // 갯수선택
 }
 
-abstract class InfoSuper implements InfoImpl{
+abstract class Super_Info implements Impl_Info {
     private static BufferedReader br;
     List<Product> mList = new PdSetting().getsBaseList();
     Iterator<Product> itList;
 
-    int userSelect = 0;
-    int kioskStock = 0;
+    int userSelect = 0; // 유저 선택
+    int userStock = 0; // 유저 수량 개수
+    int pdStock = 0; // 재고 개수
 
     public void infoTitle(){
         System.out.println("\n2. 나만의 샐러드 -------------------------------------- ");
     }
     public void infoHeader(){
-        System.out.printf("%-4s| %-8s|\t%-8s|\t%-8s\t|\t%-8s\n", "번호", "상품명", "칼로리", "가격", "남은수량");
+        System.out.printf("%-4s| %-8s|\t%-8s|\t%-8s|\t%-8s\t|\t%-8s\n", "번호", "상품명", "단위", "칼로리", "가격", "남은수량");
     }
 
     @Override
@@ -183,29 +212,36 @@ abstract class InfoSuper implements InfoImpl{
         infoHeader();
 
         SelectMenu sMenu = new SelectMenu();
+        SelectCount sCount = new SelectCount();
 
         itList = mList.iterator();
         for (int i=1; i<=mList.size();i++){
             Product itS = itList.next();
-            System.out.printf("%-4d   %-8s \t%-8s \t%-8s\t \t%-8s\n", i, itS.getP_name(), itS.getP_calorie(), itS.getP_price(), itS.getP_stock());
+            System.out.printf("%-4d   %-8s \t%-8s \t%-8s\t \t%-8s \t%-8s\n", i, itS.getP_name(), itS.getP_unit(), itS.getP_calorie(), itS.getP_price(), itS.getP_stock());
         }
+
+        // 유저 메뉴 숫자 선택
         userSelect = sMenu.menuSelect(mList.size());
+
+        // 유저 재고 개수 선택
+        pdStock = mList.get(userSelect-1).getP_stock(); // 선택한 재고개수
+        userStock = sCount.menuSelect(pdStock);
+
         // 재고 빼기
-        kioskStock = mList.get(userSelect-1).getP_stock();
-//        mList.set(userSelect-1,);
-//        mList.setP_stock(kioskStock)
-//        mList.set(0,Product.setP_stock(2));
-//        mList.set(userSelect - 1, )
-        System.out.println();
+        mList.get(userSelect-1).setP_stock(pdStock - userStock);
+
+//        테스트를 위한 코드
+        pdStock = mList.get(userSelect-1).getP_stock(); // 선택한 재고개수
+        System.out.println(pdStock);
     }
 
     @Override
-    public void menuPrint(){
+    public void menuCount(){
 
     }
 }
 // 2dep print ----------------------------------------------------------------
-class dep2_infoBase extends InfoSuper{
+class dep2_infoBase extends Super_Info {
 
     @Override
     public void infoTitle(){
@@ -219,9 +255,9 @@ class dep2_infoBase extends InfoSuper{
     }
 
     @Override
-    public void menuPrint(){}
+    public void menuCount(){}
 }
-class dep2_infoMain extends InfoSuper {
+class dep2_infoMain extends Super_Info {
 
     @Override
     public void infoTitle(){
@@ -235,10 +271,10 @@ class dep2_infoMain extends InfoSuper {
     }
 
     @Override
-    public void menuPrint() {
+    public void menuCount() {
     }
 }
-class dep2_infoSide extends InfoSuper{
+class dep2_infoSide extends Super_Info {
 
     @Override
     public void infoTitle(){
@@ -252,10 +288,10 @@ class dep2_infoSide extends InfoSuper{
     }
 
     @Override
-    public void menuPrint() {
+    public void menuCount() {
     }
 }
-class dep2_infoSource extends InfoSuper{
+class dep2_infoSource extends Super_Info {
     
     @Override
     public void infoTitle(){
@@ -269,11 +305,11 @@ class dep2_infoSource extends InfoSuper{
     }
 
     @Override
-    public void menuPrint() {
+    public void menuCount() {
     }
 }
 
-class dep2_infoCheese extends InfoSuper{
+class dep2_infoCheese extends Super_Info {
 
     @Override
     public void infoTitle(){
@@ -287,7 +323,7 @@ class dep2_infoCheese extends InfoSuper{
     }
 
     @Override
-    public void menuPrint() {
+    public void menuCount() {
     }
 }
 class infoCancel{}
@@ -326,7 +362,7 @@ enum Material{
 class Product{
     private int p_material; // 분류번호
     private String p_name;  // 이름
-    private int p_unit;     // 단위
+    private String p_unit;     // 단위
     private int p_count;    // 개수
     private int p_calorie;  // 칼로리
     private int p_stock;    // 적정 재고
@@ -335,7 +371,7 @@ class Product{
     // 생성자
     Product(){}
     // 사용자 정의 생성자
-    Product(int p_material,String p_name,int p_unit,int p_count,int p_calorie,int p_stock,int p_price){
+    Product(int p_material,String p_name,String p_unit,int p_count,int p_calorie,int p_stock,int p_price){
         //("이름", new Product(분류번호, 단위, 개수, 칼로리, 적정재고, 금액))
         this.p_material = p_material;
         this.p_name = p_name;
@@ -351,8 +387,8 @@ class Product{
     public void setP_material(int p_material) { this.p_material = p_material; }
     public String getP_name() { return p_name; }
     public void setP_name(String p_name) { this.p_name = p_name; }
-    public int getP_unit() { return p_unit; }
-    public void setP_unit(int p_unit) { this.p_unit = p_unit; }
+    public String getP_unit() { return p_unit; }
+    public void setP_unit(String p_unit) { this.p_unit = p_unit; }
     public int getP_count() { return p_count; }
     public void setP_count(int p_count) { this.p_count = p_count; }
     public int getP_calorie() { return p_calorie; }
@@ -395,41 +431,41 @@ class PdSetting{
      */
 //        pdMap.put("이름",new Product(분류번호, 단위, 개수, 칼로리, 적정재고, 금액));
     void setS_Base(){
-        sBaseList.add(new Product(Material.S_BASE.ordinal(), "양상추", 1, 100, 200, 5, 400));
-        sBaseList.add(new Product(Material.S_BASE.ordinal(), "오이", 1, 100, 200, 4, 400));
-        sBaseList.add(new Product(Material.S_BASE.ordinal(), "토마토", 1, 100, 200, 3, 400));
-        sBaseList.add(new Product(Material.S_BASE.ordinal(), "양파", 1, 100, 200, 1, 400));
+        sBaseList.add(new Product(Material.S_BASE.ordinal(), "양상추", "1", 100, 200, 5, 400));
+        sBaseList.add(new Product(Material.S_BASE.ordinal(), "오이", "1", 100, 200, 4, 400));
+        sBaseList.add(new Product(Material.S_BASE.ordinal(), "토마토", "1", 100, 200, 3, 400));
+        sBaseList.add(new Product(Material.S_BASE.ordinal(), "양파", "1", 100, 200, 1, 400));
 
 
     }
     void setS_Main(){
-        sMainList.add(new Product(Material.S_MAIN.ordinal(), "닭고기", 1, 100, 200, 5, 400));
-        sMainList.add(new Product(Material.S_MAIN.ordinal(), "소고기", 1, 100, 200, 5, 400));
-        sMainList.add(new Product(Material.S_MAIN.ordinal(), "연어", 1, 100, 200, 5, 400));
-        sMainList.add(new Product(Material.S_MAIN.ordinal(), "우삼겹", 1, 100, 200, 5, 400));
-        sMainList.add(new Product(Material.S_MAIN.ordinal(), "베이컨", 1, 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "닭고기", "1", 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "소고기", "1", 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "연어", "1", 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "우삼겹", "1", 100, 200, 5, 400));
+        sMainList.add(new Product(Material.S_MAIN.ordinal(), "베이컨", "1", 100, 200, 5, 400));
     }
     void setS_Side(){
-        sSideList.add(new Product(Material.S_SIDE.ordinal(), "토마토", 1, 100, 200, 5, 400));
-        sSideList.add(new Product(Material.S_SIDE.ordinal(), "올리브", 1, 100, 200, 5, 400));
-        sSideList.add(new Product(Material.S_SIDE.ordinal(), "할라피뇨", 1, 100, 200, 5, 400));
-        sSideList.add(new Product(Material.S_SIDE.ordinal(), "새우", 1, 100, 200, 5, 400));
-        sSideList.add(new Product(Material.S_SIDE.ordinal(), "당근", 1, 100, 200, 5, 400));
-        sSideList.add(new Product(Material.S_SIDE.ordinal(), "오이", 1, 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "토마토", "1", 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "올리브", "1", 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "할라피뇨", "1", 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "새우", "1", 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "당근", "1", 100, 200, 5, 400));
+        sSideList.add(new Product(Material.S_SIDE.ordinal(), "오이", "1", 100, 200, 5, 400));
     }
     void setS_Source(){
-        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "오리엔탈",1, 100, 200, 5, 400));
-        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "발사믹",1, 100, 200, 5, 400));
-        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "시저",1, 100, 200, 5, 400));
-        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "크리미",1, 100, 200, 5, 400));
-        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "칠리",1, 100, 200, 5, 400));
-        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "마요네즈",1, 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "오리엔탈","1", 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "발사믹","1", 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "시저","1", 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "크리미","1", 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "칠리","1", 100, 200, 5, 400));
+        sSourceList.add(new Product(Material.S_SOURCE.ordinal(), "마요네즈","1", 100, 200, 5, 400));
     }
     void setS_Cheese(){
-        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "아메리칸",1, 100, 200, 5, 400));
-        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "모짜렐라",1, 100, 200, 5, 400));
-        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "리코타",1, 100, 200, 5, 400));
-        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "부라타",1, 100, 200, 5, 400));
+        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "아메리칸","1", 100, 200, 5, 400));
+        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "모짜렐라","1", 100, 200, 5, 400));
+        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "리코타","1", 100, 200, 5, 400));
+        sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "부라타","1", 100, 200, 5, 400));
     }
 
     //getter
@@ -460,7 +496,7 @@ class PdSetting{
  메인 ----------------------------------------------------------------
 */
 public class Main{
-    public static Emp emp = new Emp("😊");
+    public static Emp emp = new Emp(":)");
 
     public static void main(String[] args) throws IOException{
         // 직원 인사
