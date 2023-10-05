@@ -2,17 +2,14 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-import java.util.Map;
-import java.util.HashMap;
-
 import java.util.List;
 import java.util.ArrayList;
 
 import java.util.Iterator;
 
-import java.util.Calendar;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.text.SimpleDateFormat;
 
 /*
  직원 안내 메세지 ----------------------------------------------------------------
@@ -32,7 +29,7 @@ class Emp {
 /*
  회원 ----------------------------------------------------------------
 */
-class Member{
+/*class Member{
     private String tel; // 전화번호
     private String pw;  // 비밀번호
     private int point;  // 포인트
@@ -49,7 +46,7 @@ class Member{
     public int getPoint() { return point; }
 
     public void setPoint(int point) { this.point = point; }
-}
+}*/
 
 /*
  키오스크 ----------------------------------------------------------------
@@ -59,6 +56,11 @@ class Kiosk {
     private static BufferedReader br;
 
     SelectMenu sMenu = new SelectMenu();
+
+    OrderSetting oSetting = new OrderSetting();
+    private List<Order> outerList = new ArrayList<Order>();
+
+    UserProduct selUP = new UserProduct();
 
     // 2dep
     dep2_infoBase dep2InfoBa = new dep2_infoBase();
@@ -84,12 +86,36 @@ class Kiosk {
     static final int e_drink    = 3;   // 음료
     static final int e_side     = 4;   // 사이드
     static final int e_cancel = -1;  // 취소
-    
-    int userSelect;     // 유저 선택값
+
+    int userSelect;         // 유저 선택값
+    int useridx=0;          // 유저 인덱스
+    String userName = "고객";
+    List<UserProduct> mRInner;
 
     public void kioskStart(){
+
+        storePack();    // 포장 or 매장 여부
         menuDisp();
         menuRun();
+
+        // test 231005
+//        oSetting.set_order(outerList);
+//        oSetting.set_innerOrder(outerList);
+        oSetting.set_print(outerList);
+    }
+
+    public void storePack(){
+        useridx++;
+        System.out.println("=============================");
+        System.out.println("\t 1. 포장");
+        System.out.println("\t 2. 매장");
+        System.out.println("=============================");
+        userSelect = sMenu.menuSelect(2);
+
+        // 선택값 배열-유저 임시 이름 넣기
+//        outerList.add(new Order(userName + useridx));
+        outerList.add(new Order(userName + useridx,"yyyyMMddHHmmss",0,0));
+        mRInner = outerList.get(useridx-1).innerList;
     }
 
     public void menuDisp(){
@@ -102,10 +128,14 @@ class Kiosk {
 //        System.out.println("\t - 뒤로가기(c)");
         System.out.println("=============================");
         userSelect = sMenu.menuSelect(4);
+//        outerList.add(new Order(userName + useridx));
+
     }
 
 
     public void menuRun(){
+        // 선택값 배열-
+
         switch (userSelect){
             case e_rcmnd    : menuRcmd();   break;
             case e_mySalad  : menuMySalad();break;
@@ -114,33 +144,46 @@ class Kiosk {
             case e_cancel   : menuCancel(); break;
         }
     }
-    
+
+    public void UserSelectInsert(UserProduct selUP){
+        mRInner.add(new UserProduct(selUP.getU_name(), selUP.getU_Count(), selUP.getU_calorie(), selUP.getU_price()));
+    }
+
     public void menuRcmd(){     // 사장추천
         System.out.println("\n1. 사장추천 -------------------------------------- ");
-        dep1InfoCe.menuInfo();
+        selUP = dep1InfoCe.menuInfo();
+        UserSelectInsert(selUP);
+
     }
     public void menuMySalad(){  // 나만의 샐러드
+
         System.out.println("\n2. 나만의 샐러드 -------------------------------------- ");
 
-        dep2InfoBa.menuInfo();
-        dep2InfoMa.menuInfo();
-        dep2InfoSi.menuInfo();
-        dep2InfoSo.menuInfo();
-        dep2InfoCh.menuInfo();
+        selUP = dep2InfoBa.menuInfo();
+        UserSelectInsert(selUP);
+        selUP = dep2InfoMa.menuInfo();
+        UserSelectInsert(selUP);
+        selUP = dep2InfoSi.menuInfo();
+        UserSelectInsert(selUP);
+        selUP = dep2InfoSo.menuInfo();
+        UserSelectInsert(selUP);
+        selUP = dep2InfoCh.menuInfo();
+        UserSelectInsert(selUP);
 
     }
 
     public void menuDrink(){    // 음료
-
         System.out.println("\n2. 음료 -------------------------------------- ");
-        dep1InfoDr.menuInfo();
+        selUP = dep1InfoDr.menuInfo();
+        UserSelectInsert(selUP);
     }
     public void menuSide(){     // 사이드
         System.out.println("\n2. 사이드 -------------------------------------- ");
-        dep1InfoSi.menuInfo();
+        selUP = dep1InfoSi.menuInfo();
+        UserSelectInsert(selUP);
     }
     public void menuCancel(){   // 취소
-        
+
     }
 }
 
@@ -199,18 +242,22 @@ class SelectCount extends Super_Select{
  안내 ----------------------------------------------------------------
 */
 interface Impl_Info {
-    public void menuInfo();     // 메뉴선택
-    public void menuCount();    // 갯수선택
+    public UserProduct menuInfo();     // 메뉴선택
 }
 
-abstract class Super_Info implements Impl_Info {
+abstract class Super_InfoPd implements Impl_Info {
     private static BufferedReader br;
     List<Product> mList = new PdSetting().getsBaseList();
     Iterator<Product> citList;
 
+    UserProduct selUP = new UserProduct();
+
     int userSelect = 0; // 유저 선택
     int userStock = 0; // 유저 수량 개수
+    String userSelName = "";
     int pdStock = 0; // 재고 개수
+
+
 
     public void infoHeader(){
         System.out.printf("%-4s| %-8s|\t%-8s|\t%-8s|\t%-8s\t|\t%-8s\n", "번호", "상품명", "단위", "칼로리", "가격", "남은수량");
@@ -225,7 +272,7 @@ abstract class Super_Info implements Impl_Info {
     }
 
     @Override
-    public void menuInfo(){
+    public UserProduct menuInfo(){
         SelectMenu sMenu = new SelectMenu();
         SelectCount sCount = new SelectCount();
 
@@ -235,93 +282,44 @@ abstract class Super_Info implements Impl_Info {
         // 유저 메뉴 숫자 선택
         userSelect = sMenu.menuSelect(mList.size());
 
-        // 유저 재고 개수 선택
         pdStock = mList.get(userSelect-1).getP_stock(); // 선택한 재고개수
-        userStock = sCount.menuSelect(pdStock);
+        userStock = sCount.menuSelect(pdStock); // 유저 재고 개수 선택
 
+        selUP.setU_name(mList.get(userSelect-1).getP_name());
+        selUP.setU_Count(userStock);
+        selUP.setU_price(mList.get(userSelect-1).getP_price());
+        selUP.setU_calorie(mList.get(userSelect-1).getP_calorie());
+
+        //userSelName = mList.get(pdStock).getP_name();
+
+
+
+        /*
         // 재고 빼기
         mList.get(userSelect-1).setP_stock(pdStock - userStock);
 
 //        테스트를 위한 코드
         pdStock = mList.get(userSelect-1).getP_stock(); // 선택한 재고개수
-        System.out.println(pdStock);
-    }
-
-    @Override
-    public void menuCount(){
-
-    }
-}
-// 2dep print ----------------------------------------------------------------
-class dep2_infoBase extends Super_Info {
-    @Override
-    public void menuInfo(){
-        System.out.println("\t\t\t\t[ 베이스 ■ ■ ■ ■ ]");
-        mList = new PdSetting().getsBaseList();
-        super.menuInfo();
-    }
-
-    @Override
-    public void menuCount(){}
-}
-class dep2_infoMain extends Super_Info {
-    @Override
-    public void menuInfo(){
-        System.out.println("\t\t\t\t[ ■ 메인토핑 ■ ■ ■ ]");
-        mList = new PdSetting().getsMainList();
-        super.menuInfo();
-    }
-
-    @Override
-    public void menuCount() {
-    }
-}
-class dep2_infoSide extends Super_Info {
-    @Override
-    public void menuInfo(){
-        System.out.println("\t\t\t\t[ ■ ■ 사이드토핑 ■ ■ ]");
-        mList = new PdSetting().getsSideList();
-        super.menuInfo();
-    }
-
-    @Override
-    public void menuCount() {
-    }
-}
-class dep2_infoSource extends Super_Info {
-    
-    @Override
-    public void menuInfo(){
-        System.out.println("\t\t\t\t[ ■ ■ ■ 소스 ■ ]");
-        mList = new PdSetting().getsSourceList();
-        super.menuInfo();
-    }
-
-    @Override
-    public void menuCount() {
-    }
-}
-class dep2_infoCheese extends Super_Info {
-    @Override
-    public void menuInfo(){
-        System.out.println("\t\t\t\t[ ■ ■ ■ ■ 치즈 ]");
-        mList = new PdSetting().getsCheeseList();
-        super.menuInfo();
-    }
-
-    @Override
-    public void menuCount() {
+        System.out.println(pdStock);*/
+        return selUP;
     }
 }
 
-class dep1_infoCeo extends Super_Info {
+abstract class Super_InfoCeo implements Impl_Info {
+    private static BufferedReader br;
     List<CeoRcmd> cList = new PdSetting().getCeoList();
     Iterator<CeoRcmd> citList = cList.iterator();
-    @Override
+
+    UserProduct selUP = new UserProduct();
+
+    int userSelect = 0; // 유저 선택
+    int userStock = 0; // 유저 수량 개수
+    int pdStock = 0; // 재고 개수
+
     public void infoHeader(){
         System.out.printf("%-4s| %-8s|\t%-8s|\t%-8s\t|\t%-8s\n", "번호", "상품명", "상세재료", "칼로리", "가격");
     }
-    @Override
+
     public void infoBody(){
         for (int i=1; i<=cList.size();i++){
             CeoRcmd itS = citList.next();
@@ -330,16 +328,93 @@ class dep1_infoCeo extends Super_Info {
     }
 
     @Override
-    public void menuInfo(){
-        super.menuInfo();
-    }
+    public UserProduct menuInfo(){
+        SelectMenu sMenu = new SelectMenu();
+        SelectCount sCount = new SelectCount();
 
-    @Override
-    public void menuCount() {
+        infoHeader();   // 정보 표 헤더
+        infoBody();     // 정보 표 바디
+
+        // 유저 메뉴 숫자 선택
+        userSelect = sMenu.menuSelect(cList.size());
+
+        selUP.setU_Count(userStock);
+        selUP.setU_price(cList.get(userSelect-1).getC_price());
+        selUP.setU_calorie(cList.get(userSelect-1).getC_calorie());
+        return selUP;
     }
 }
 
-class dep1_infoDrink extends Super_Info {
+class dep1_infoCeo extends Super_InfoCeo {
+
+    @Override
+    public UserProduct menuInfo(){
+        super.menuInfo();
+
+        return selUP;
+    }
+}
+
+
+
+// 2dep print ----------------------------------------------------------------
+class dep2_infoBase extends Super_InfoPd {
+    @Override
+    public UserProduct menuInfo(){
+        System.out.println("\t\t\t\t[ 베이스 ■ ■ ■ ■ ]");
+        mList = new PdSetting().getsBaseList();
+        super.menuInfo();
+
+//        = userSelect;
+
+//        System.out.println(mList.get(pdStock).getP_calorie());
+
+        return selUP;
+    }
+}
+class dep2_infoMain extends Super_InfoPd {
+    @Override
+    public UserProduct menuInfo(){
+        System.out.println("\t\t\t\t[ ■ 메인토핑 ■ ■ ■ ]");
+        mList = new PdSetting().getsMainList();
+        super.menuInfo();
+
+        return selUP;
+    }
+}
+class dep2_infoSide extends Super_InfoPd {
+    @Override
+    public UserProduct menuInfo(){
+        System.out.println("\t\t\t\t[ ■ ■ 사이드토핑 ■ ■ ]");
+        mList = new PdSetting().getsSideList();
+        super.menuInfo();
+
+        return selUP;
+    }
+}
+class dep2_infoSource extends Super_InfoPd {
+
+    @Override
+    public UserProduct menuInfo(){
+        System.out.println("\t\t\t\t[ ■ ■ ■ 소스 ■ ]");
+        mList = new PdSetting().getsSourceList();
+        super.menuInfo();
+
+        return selUP;
+    }
+}
+class dep2_infoCheese extends Super_InfoPd {
+    @Override
+    public UserProduct menuInfo(){
+        System.out.println("\t\t\t\t[ ■ ■ ■ ■ 치즈 ]");
+        mList = new PdSetting().getsCheeseList();
+        super.menuInfo();
+
+        return selUP;
+    }
+}
+
+class dep1_infoDrink extends Super_InfoPd {
     @Override
     public void infoHeader(){
         System.out.printf("%-4s| %-8s|\t%-8s|\t%-8s\t|\t%-8s\n", "번호", "상품명", "칼로리", "가격", "남은수량");
@@ -354,17 +429,15 @@ class dep1_infoDrink extends Super_Info {
     }
 
     @Override
-    public void menuInfo(){
+    public UserProduct menuInfo(){
         mList = new PdSetting().getDrinkList();
         super.menuInfo();
-    }
 
-    @Override
-    public void menuCount() {
+        return selUP;
     }
 }
 
-class dep1_infoSide extends Super_Info {
+class dep1_infoSide extends Super_InfoPd {
     @Override
     public void infoHeader(){
         System.out.printf("%-4s| %-8s|\t%-8s|\t%-8s\t|\t%-8s\n", "번호", "상품명", "칼로리", "가격", "남은수량");
@@ -379,15 +452,14 @@ class dep1_infoSide extends Super_Info {
     }
 
     @Override
-    public void menuInfo(){
+    public UserProduct menuInfo(){
         mList = new PdSetting().getSideList();
         super.menuInfo();
-    }
 
-    @Override
-    public void menuCount() {
+        return selUP;
     }
 }
+
 
 class infoCancel{}
 
@@ -421,51 +493,31 @@ enum Material{
 /*
  주문 ----------------------------------------------------------------
 */
-class UserOrder{
-    private String u_Base;  // 베이스
-    private int u_BaCount;
-    private String u_Main;  // 메인
-    private int u_MaCount;
-    private String u_Side;  // 사이드
-    private int u_SiCount;
-    private String u_Source; // 소스
-    private int u_SoCount;
-    private String u_Cheese; // 치즈
-    private int u_ChCount;
+class UserProduct {
+    private String u_name;  // 제품
+    private int u_Count;    // 개수
+    private int u_calorie;  // 칼로리
+    private int u_price;    // 가격
 
-    UserOrder(String u_Base, int u_BaCount, String u_Main, int u_MaCount, String u_Side, int u_SiCount, String u_Source, int u_SoCount, String u_Cheese, int u_ChCount){
-        this.u_Base = u_Base;
-        this.u_BaCount = u_BaCount;
-        this.u_Main = u_Main;
-        this.u_MaCount = u_MaCount;
-        this.u_Side = u_Side;
-        this.u_SiCount = u_SiCount;
-        this.u_Source = u_Source;
-        this.u_SoCount = u_SoCount;
-        this.u_Cheese = u_Cheese;
-        this.u_ChCount = u_ChCount;
+    UserProduct(String u_name, int u_Count, int u_calorie, int u_price){
+        this.u_name = u_name;
+        this.u_Count = u_Count;
+        this.u_calorie = u_calorie;
+        this.u_price = u_price;
     };
 
-    public String getU_Base() { return u_Base; }
-    public void setU_Base(String u_Base) { this.u_Base = u_Base; }
-    public int getU_BaCount() { return u_BaCount; }
-    public void setU_BaCount(int u_BaCount) { this.u_BaCount = u_BaCount; }
-    public String getU_Main() { return u_Main; }
-    public void setU_Main(String u_Main) { this.u_Main = u_Main; }
-    public int getU_MaCount() { return u_MaCount; }
-    public void setU_MaCount(int u_MaCount) { this.u_MaCount = u_MaCount; }
-    public String getU_Side() { return u_Side; }
-    public void setU_Side(String u_Side) { this.u_Side = u_Side; }
-    public int getU_SiCount() { return u_SiCount; }
-    public void setU_SiCount(int u_SiCount) { this.u_SiCount = u_SiCount; }
-    public String getU_Source() { return u_Source; }
-    public void setU_Source(String u_Source) { this.u_Source = u_Source; }
-    public int getU_SoCount() { return u_SoCount; }
-    public void setU_SoCount(int u_SoCount) { this.u_SoCount = u_SoCount; }
-    public String getU_Cheese() { return u_Cheese; }
-    public void setU_Cheese(String u_Cheese) { this.u_Cheese = u_Cheese; }
-    public int getU_ChCount() { return u_ChCount; }
-    public void setU_ChCount(int u_ChCount) { this.u_ChCount = u_ChCount; }
+    public UserProduct() {
+
+    }
+
+    public String getU_name() { return u_name; }
+    public void setU_name(String u_name) { this.u_name = u_name; }
+    public int getU_Count() { return u_Count; }
+    public void setU_Count(int u_Count) { this.u_Count = u_Count; }
+    public int getU_calorie() { return u_calorie; }
+    public void setU_calorie(int u_calorie) { this.u_calorie = u_calorie; }
+    public int getU_price() { return u_price; }
+    public void setU_price(int u_price) { this.u_price = u_price; }
 }
 
 class Order{
@@ -475,16 +527,93 @@ class Order{
     // 총 칼로리, 총 결재금액
     private String o_name;
     private String o_nowTime;
+
+    List<UserProduct> innerList = new ArrayList<UserProduct>();
+//    UserProduct o_userPd;
     private int o_totCalorie;
     private int o_totPrice;
 
+    Order(String o_name) {
+        this.o_name = o_name;
+    }
+
+    Order(String o_name, String o_nowTime, int o_totCalorie, int o_totPrice){
+        this.o_name = o_name;
+        this.o_nowTime = o_nowTime;
+        this.o_totCalorie = o_totCalorie;
+        this.o_totPrice = o_totPrice;
+    }
+    Order(String o_name, String o_nowTime, List<UserProduct> userList, int o_totCalorie, int o_totPrice){
+        this.o_name = o_name;
+        this.o_nowTime = o_nowTime;
+        this.innerList = userList;
+//        this.o_userPd = o_salad;
+        this.o_totCalorie = o_totCalorie;
+        this.o_totPrice = o_totPrice;
+    }
+
+    public String getO_name() { return o_name; }
+    public void setO_name(String o_name) { this.o_name = o_name; }
+    public String getO_nowTime() { return o_nowTime; }
+    public void setO_nowTime(String o_nowTime) { this.o_nowTime = o_nowTime; }
+    public List<UserProduct> getO_userList() { return innerList; }
+    public void setO_userList(List<UserProduct> o_userList) { this.innerList = innerList; }
+    public int getO_totCalorie() { return o_totCalorie; }
+    public void setO_totCalorie(int o_totCalorie) { this.o_totCalorie = o_totCalorie; }
+    public int getO_totPrice() { return o_totPrice; }
+    public void setO_totPrice(int o_totPrice) { this.o_totPrice = o_totPrice; }
 }
 class OrderCart{
-    public void nowTime(){
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd a HH:mm:ss");
-        Date nowDate = new Date();
-        System.out.println(simpleDateFormat.format(nowDate));
+    public String nowTime(){
+        Date today = new Date();
+        Locale currentLocale = new Locale("KOREAN", "KOREA");
+        String pattern = "yyyyMMddHHmmss"; //hhmmss로 시간,분,초만 뽑기도 가능
+        SimpleDateFormat formatter = new SimpleDateFormat(pattern, currentLocale);
+        System.out.println(formatter.format(today));
+        return formatter.format(today);
     }
+}
+// 주문 셋팅
+class OrderSetting{
+//    private List<Order> outerList = new ArrayList<Order>();
+    Iterator<Order> outList;
+    Iterator<UserProduct> innerList;
+
+    void set_order(List<Order> outerList){
+        outerList.add(new Order("이름1","20231005153350",200,200));
+        outerList.add(new Order("이름2","20231005153350",200,200));
+        outerList.add(new Order("이름3","20231005153350",200,200));
+        outerList.add(new Order("이름4","20231005153350",200,200));
+        outerList.add(new Order("이름5","20231005153350",200,200));
+    }
+
+    void set_innerOrder(List<Order> outerList) {
+        for (int i = 0; i < 3; i++) {
+            outerList.get(i).innerList.add(new UserProduct("베이스", 1, 100, 200));
+        }
+        System.out.println(outerList.get(1).innerList.get(0).getU_calorie());
+
+//        orderList.add(new Order("이름1","20231005153350",new UserProduct("베이스",1,100,200),200,200));
+    }
+
+    void set_print(List<Order> outerList){
+        outList = outerList.iterator();
+        System.out.println(outerList.size());
+
+        System.out.printf("%-4s| %-8s \t%-8s \t%-8s \t%-8s\n","NO","이름","년월일시간","총칼로리","총금액");
+        for (int i=0; i<outerList.size();i++){
+            Order itS = outList.next();
+            System.out.printf("%-4d   %-8s \t%-8s \t%-8d \t%-8d\n",i, itS.getO_name(), itS.getO_nowTime(), itS.getO_totCalorie(), itS.getO_totPrice());
+
+//            System.out.println(outerList.get(i).innerList);
+            innerList = outerList.get(i).innerList.iterator();
+            for (int j=0; j<outerList.get(i).innerList.size();j++){
+                UserProduct itInner = innerList.next();
+                System.out.printf("\t%d-%d) %-8s \t%-8s \t%-8d \t%-8d\n",i,j, itInner.getU_name(), itInner.getU_Count(), itInner.getU_calorie(), itInner.getU_Count());
+            }
+        }
+    }
+
 }
 
 
@@ -613,7 +742,7 @@ class PdSetting{
     // 사이드 -------------------------------
     private List<Product> sideList = new ArrayList<Product>();      // 제품>사이드 ArrayList
     // 회원 -------------------------------
-    private Map<String,Member> mbMap = new HashMap<String,Member>();            // 멤버 ArrayList
+//    private Map<String,Member> mbMap = new HashMap<String,Member>();            // 멤버 ArrayList
 
     //testProductData
     public PdSetting(){
@@ -629,7 +758,7 @@ class PdSetting{
 
         // 음료
         set_Drink();
-        
+
         //사이드
         set_Side();
     }
@@ -678,7 +807,7 @@ class PdSetting{
         sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "리코타","1", 100, 200, 5, 400));
         sCheeseList.add(new Product(Material.S_CHEESE.ordinal(), "부라타","1", 100, 200, 5, 400));
     }
-    
+
     void set_Ceo(){
         ceoList.add(new CeoRcmd("시저치킨샐러드",new CeoDetail("닭고기","크렌베리","시저"),200,200));
         ceoList.add(new CeoRcmd("콥샐러드",new CeoDetail("계란","옥수수","시저"),200,200));
@@ -707,7 +836,7 @@ class PdSetting{
     public List<Product> getDrinkList() { return drinkList; }
     public List<Product> getSideList() { return sideList; }
 
-    public Map<String, Member> getMbMap() { return mbMap; }
+//    public Map<String, Member> getMbMap() { return mbMap; }
 
     // setter
     public void setsBaseList(List<Product> sBaseList) { this.sBaseList = sBaseList; }
@@ -720,7 +849,7 @@ class PdSetting{
     public void setDrinkList(List<Product> drinkList) { this.drinkList = drinkList; }
     public void setSideList(List<Product> sideList) { this.sideList = sideList; }
 
-    public void setMbMap(Map<String, Member> mbMap) { this.mbMap = mbMap; }
+//    public void setMbMap(Map<String, Member> mbMap) { this.mbMap = mbMap; }
 }
 
 
@@ -735,7 +864,30 @@ public class Main{
         // 직원 인사
         //emp.empWelcome();
 
+        /*// 바깥쪽 ArrayList 생성
+        ArrayList<ArrayList<Integer>> outerArrayList = new ArrayList<>();
 
+        // 내부 ArrayList 생성 및 원하는 값을 추가
+        ArrayList<Integer> innerArrayList1 = new ArrayList<>();
+        innerArrayList1.add(1);
+        innerArrayList1.add(2);
+        innerArrayList1.add(3);
+
+        ArrayList<Integer> innerArrayList2 = new ArrayList<>();
+        innerArrayList2.add(4);
+        innerArrayList2.add(5);
+
+        // 바깥쪽 ArrayList에 내부 ArrayList 추가
+        outerArrayList.add(innerArrayList1);
+        outerArrayList.add(innerArrayList2);
+
+        // 바깥쪽 ArrayList 출력
+        for (ArrayList<Integer> innerList : outerArrayList) {
+            for (Integer value : innerList) {
+                System.out.print(value + " ");
+            }
+            System.out.println();
+        }*/
 
         Kiosk ks = new Kiosk();
         ks.kioskStart();
