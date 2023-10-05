@@ -113,7 +113,6 @@ class Kiosk {
         userSelect = sMenu.menuSelect(2);
 
         // 선택값 배열-유저 임시 이름 넣기
-//        outerList.add(new Order(userName + useridx));
         outerList.add(new Order(userName + useridx,"yyyyMMddHHmmss",0,0));
         mRInner = outerList.get(useridx-1).innerList;
     }
@@ -128,14 +127,11 @@ class Kiosk {
 //        System.out.println("\t - 뒤로가기(c)");
         System.out.println("=============================");
         userSelect = sMenu.menuSelect(4);
-//        outerList.add(new Order(userName + useridx));
 
     }
 
 
     public void menuRun(){
-        // 선택값 배열-
-
         switch (userSelect){
             case e_rcmnd    : menuRcmd();   break;
             case e_mySalad  : menuMySalad();break;
@@ -145,42 +141,28 @@ class Kiosk {
         }
     }
 
-    public void UserSelectInsert(UserProduct selUP){
-        mRInner.add(new UserProduct(selUP.getU_name(), selUP.getU_Count(), selUP.getU_calorie(), selUP.getU_price()));
-    }
-
     public void menuRcmd(){     // 사장추천
         System.out.println("\n1. 사장추천 -------------------------------------- ");
-        selUP = dep1InfoCe.menuInfo();
-        UserSelectInsert(selUP);
-
+        dep1InfoCe.menuInfo(mRInner);
     }
     public void menuMySalad(){  // 나만의 샐러드
 
         System.out.println("\n2. 나만의 샐러드 -------------------------------------- ");
 
-        selUP = dep2InfoBa.menuInfo();
-        UserSelectInsert(selUP);
-        selUP = dep2InfoMa.menuInfo();
-        UserSelectInsert(selUP);
-        selUP = dep2InfoSi.menuInfo();
-        UserSelectInsert(selUP);
-        selUP = dep2InfoSo.menuInfo();
-        UserSelectInsert(selUP);
-        selUP = dep2InfoCh.menuInfo();
-        UserSelectInsert(selUP);
-
+        dep2InfoBa.menuInfo(mRInner);
+        dep2InfoMa.menuInfo(mRInner);
+        dep2InfoSi.menuInfo(mRInner);
+        dep2InfoSo.menuInfo(mRInner);
+        dep2InfoCh.menuInfo(mRInner);
     }
 
     public void menuDrink(){    // 음료
         System.out.println("\n2. 음료 -------------------------------------- ");
-        selUP = dep1InfoDr.menuInfo();
-        UserSelectInsert(selUP);
+        dep1InfoDr.menuInfo(mRInner);
     }
     public void menuSide(){     // 사이드
         System.out.println("\n2. 사이드 -------------------------------------- ");
-        selUP = dep1InfoSi.menuInfo();
-        UserSelectInsert(selUP);
+        dep1InfoSi.menuInfo(mRInner);
     }
     public void menuCancel(){   // 취소
 
@@ -242,7 +224,7 @@ class SelectCount extends Super_Select{
  안내 ----------------------------------------------------------------
 */
 interface Impl_Info {
-    public UserProduct menuInfo();     // 메뉴선택
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner);     // 메뉴선택
 }
 
 abstract class Super_InfoPd implements Impl_Info {
@@ -250,11 +232,8 @@ abstract class Super_InfoPd implements Impl_Info {
     List<Product> mList = new PdSetting().getsBaseList();
     Iterator<Product> citList;
 
-    UserProduct selUP = new UserProduct();
-
     int userSelect = 0; // 유저 선택
     int userStock = 0; // 유저 수량 개수
-    String userSelName = "";
     int pdStock = 0; // 재고 개수
 
 
@@ -272,7 +251,7 @@ abstract class Super_InfoPd implements Impl_Info {
     }
 
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         SelectMenu sMenu = new SelectMenu();
         SelectCount sCount = new SelectCount();
 
@@ -285,32 +264,30 @@ abstract class Super_InfoPd implements Impl_Info {
         pdStock = mList.get(userSelect-1).getP_stock(); // 선택한 재고개수
         userStock = sCount.menuSelect(pdStock); // 유저 재고 개수 선택
 
-        selUP.setU_name(mList.get(userSelect-1).getP_name());
-        selUP.setU_Count(userStock);
-        selUP.setU_price(mList.get(userSelect-1).getP_price());
-        selUP.setU_calorie(mList.get(userSelect-1).getP_calorie());
-
-        //userSelName = mList.get(pdStock).getP_name();
-
-
+        // 유저 선택값넣기
+        mRInner.add(new UserProduct(
+                mList.get(userSelect-1).getP_name(),    // 유저 선택 제품>이름
+                userStock,                              // 유저 선택 개수
+                mList.get(userSelect-1).getP_price(),   // 유저 선택 제품>가격
+                mList.get(userSelect-1).getP_calorie()  // 유저 선택 제품>칼로리
+        ));
 
         /*
         // 재고 빼기
         mList.get(userSelect-1).setP_stock(pdStock - userStock);
 
-//        테스트를 위한 코드
+        // 테스트를 위한 코드
         pdStock = mList.get(userSelect-1).getP_stock(); // 선택한 재고개수
         System.out.println(pdStock);*/
-        return selUP;
+
+        return mRInner;
     }
 }
 
 abstract class Super_InfoCeo implements Impl_Info {
     private static BufferedReader br;
     List<CeoRcmd> cList = new PdSetting().getCeoList();
-    Iterator<CeoRcmd> citList = cList.iterator();
-
-    UserProduct selUP = new UserProduct();
+    Iterator<CeoRcmd> citList;
 
     int userSelect = 0; // 유저 선택
     int userStock = 0; // 유저 수량 개수
@@ -321,6 +298,7 @@ abstract class Super_InfoCeo implements Impl_Info {
     }
 
     public void infoBody(){
+        citList = cList.iterator();
         for (int i=1; i<=cList.size();i++){
             CeoRcmd itS = citList.next();
             System.out.printf("%-4d   %-8s \t%-8s\t \t%-8d \t%-8d\n", i, itS.getC_name(), itS.getC_detail(), itS.getC_calorie(), itS.getC_price());
@@ -328,7 +306,7 @@ abstract class Super_InfoCeo implements Impl_Info {
     }
 
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         SelectMenu sMenu = new SelectMenu();
         SelectCount sCount = new SelectCount();
 
@@ -337,21 +315,29 @@ abstract class Super_InfoCeo implements Impl_Info {
 
         // 유저 메뉴 숫자 선택
         userSelect = sMenu.menuSelect(cList.size());
+//        System.out.println(
+//            cList.get(userSelect-1).getC_price()
+//
+//        );
 
-        selUP.setU_Count(userStock);
-        selUP.setU_price(cList.get(userSelect-1).getC_price());
-        selUP.setU_calorie(cList.get(userSelect-1).getC_calorie());
-        return selUP;
+        mRInner.add(new UserProduct("베이스",1,100,88888));
+        mRInner.add(new UserProduct(
+                cList.get(userSelect-1).getC_name(),    // 유저 선택 제품>이름
+                userStock,                              // 유저 선택 개수
+                cList.get(userSelect-1).getC_calorie(),  // 유저 선택 제품>칼로리
+                cList.get(userSelect-1).getC_price()   // 유저 선택 제품>가격
+        ));
+        return mRInner;
     }
 }
 
 class dep1_infoCeo extends Super_InfoCeo {
 
     @Override
-    public UserProduct menuInfo(){
-        super.menuInfo();
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
+        super.menuInfo(mRInner);
 
-        return selUP;
+        return mRInner;
     }
 }
 
@@ -360,57 +346,57 @@ class dep1_infoCeo extends Super_InfoCeo {
 // 2dep print ----------------------------------------------------------------
 class dep2_infoBase extends Super_InfoPd {
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         System.out.println("\t\t\t\t[ 베이스 ■ ■ ■ ■ ]");
         mList = new PdSetting().getsBaseList();
-        super.menuInfo();
+        super.menuInfo(mRInner);
 
 //        = userSelect;
 
 //        System.out.println(mList.get(pdStock).getP_calorie());
 
-        return selUP;
+        return mRInner;
     }
 }
 class dep2_infoMain extends Super_InfoPd {
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         System.out.println("\t\t\t\t[ ■ 메인토핑 ■ ■ ■ ]");
         mList = new PdSetting().getsMainList();
-        super.menuInfo();
+        super.menuInfo(mRInner);
 
-        return selUP;
+        return mRInner;
     }
 }
 class dep2_infoSide extends Super_InfoPd {
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         System.out.println("\t\t\t\t[ ■ ■ 사이드토핑 ■ ■ ]");
         mList = new PdSetting().getsSideList();
-        super.menuInfo();
+        super.menuInfo(mRInner);
 
-        return selUP;
+        return mRInner;
     }
 }
 class dep2_infoSource extends Super_InfoPd {
 
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         System.out.println("\t\t\t\t[ ■ ■ ■ 소스 ■ ]");
         mList = new PdSetting().getsSourceList();
-        super.menuInfo();
+        super.menuInfo(mRInner);
 
-        return selUP;
+        return mRInner;
     }
 }
 class dep2_infoCheese extends Super_InfoPd {
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         System.out.println("\t\t\t\t[ ■ ■ ■ ■ 치즈 ]");
         mList = new PdSetting().getsCheeseList();
-        super.menuInfo();
+        super.menuInfo(mRInner);
 
-        return selUP;
+        return mRInner;
     }
 }
 
@@ -429,11 +415,11 @@ class dep1_infoDrink extends Super_InfoPd {
     }
 
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         mList = new PdSetting().getDrinkList();
-        super.menuInfo();
+        super.menuInfo(mRInner);
 
-        return selUP;
+        return mRInner;
     }
 }
 
@@ -452,11 +438,11 @@ class dep1_infoSide extends Super_InfoPd {
     }
 
     @Override
-    public UserProduct menuInfo(){
+    public List<UserProduct> menuInfo(List<UserProduct> mRInner){
         mList = new PdSetting().getSideList();
-        super.menuInfo();
+        super.menuInfo(mRInner);
 
-        return selUP;
+        return mRInner;
     }
 }
 
@@ -809,9 +795,9 @@ class PdSetting{
     }
 
     void set_Ceo(){
-        ceoList.add(new CeoRcmd("시저치킨샐러드",new CeoDetail("닭고기","크렌베리","시저"),200,200));
-        ceoList.add(new CeoRcmd("콥샐러드",new CeoDetail("계란","옥수수","시저"),200,200));
-        ceoList.add(new CeoRcmd("연어샐러드",new CeoDetail("연어","토마토","크리미"),200,200));
+        ceoList.add(new CeoRcmd("시저치킨샐러드",new CeoDetail("닭고기","크렌베리","시저"),200,20));
+        ceoList.add(new CeoRcmd("콥샐러드",new CeoDetail("계란","옥수수","시저"),300,30));
+        ceoList.add(new CeoRcmd("연어샐러드",new CeoDetail("연어","토마토","크리미"),400,40));
     }
 
     void set_Drink(){
